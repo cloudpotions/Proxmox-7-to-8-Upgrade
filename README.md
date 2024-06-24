@@ -143,25 +143,24 @@ This script provides options for managing Proxmox VE repositories, including dis
 bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/post-pve-install.sh)"
 ```
 
-# Basic Security
-# On any brand new Linux Install it is highly advised to create a non-root user with sudo privileges,
-# install AppArmor and Fail2ban, and then disable root user login over SSH. Furthermore, you should
-# change your SSH Port. This script also ensures that security services start on bootup and automatically restart if shut off.
+Proxmox Security Setup Guide
 
-# Proxmox Security Setup Guide
+On any new Linux install, including Proxmox, it's crucial to implement basic security measures. This guide helps you:
 
-This guide provides step-by-step instructions for implementing basic security measures on a new Proxmox installation. These steps include:
+Create a non-root user with sudo privileges
+Install and configure AppArmor and Fail2ban
+Disable root login over SSH
+Change the SSH port
+Enable automatic security upgrades
+Ensure critical services start on boot and auto-restart if stopped
 
-- Creating a non-root user with sudo privileges
-- Installing and configuring AppArmor and Fail2ban
-- Disabling root user login over SSH
-- Changing the SSH port
-- Ensuring security services start on bootup and automatically restart if shut off
+Key security services (Fail2ban, UFW, and AppArmor) are configured to:
 
-## Prerequisites
+Start automatically on system boot
+Restart automatically if they are shut off for any reason
 
-- A fresh Proxmox installation
-- Root access to the system
+Additionally, unattended-upgrades is set up to automatically install security updates, keeping your system protected against known vulnerabilities.
+Follow the steps below to secure your Proxmox installation:
 
 ## Step-by-Step Guide
 
