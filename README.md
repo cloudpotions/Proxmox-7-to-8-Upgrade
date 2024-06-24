@@ -1,7 +1,7 @@
 # Proxmox-7-to-8-Upgrade
  This guide provides a clear and concise upgrade path from Proxmox VE 7 to 8, ensuring it's easy to copy and follow the commands. This guide was inspired by the official instructions from the  [Proxmox VE Wiki.](https://pve.proxmox.com/wiki/Upgrade_from_7_to_8)
 
-Bonus: There is also advised Linux Security Setup and ProxMoc Starter Scripts suggetsions at bottom of this guide. 
+Bonus: For additional security enhancements and Proxmox optimization, refer to the Linux Security Setup recommendations and Proxmox Starter Scripts provided at the end of this guide. 
 
  ![Cloud Potions Wizard Proxmox 7 to 8 Picture](https://github.com/cloudpotions/Proxmox-7-to-8-Upgrade/blob/main/CP%20Proxmox%207%20to%208.jpg?raw=true)
 
