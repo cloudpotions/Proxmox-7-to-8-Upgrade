@@ -85,63 +85,8 @@ login url put in the command below otherwise the default url is https://Your-Ser
 pveversion -v
 ```
 
-If it changed your Web Login URL then it is important that it resolves to your Server's IP address. 
-To update that change 
+(Maybe) Fix the hostname resolution - Can you not log into your site ? When I did this the first time the upgrade changed my host name cause I selected yes during the upgrade process for the server to hose websites and it auto-populated to vmi112345.contaboserver.net ... I included a fix for this at the very bottom of this post if you made the same mistake!
 
-Step 1: Restart the pve-cluster service:
-After updating the /etc/hosts file, try restarting the pve-cluster service:
-```
-systemctl restart pve-cluster
-```
-
-Step 2: Check the status of the pve-cluster service:
-Verify if the pve-cluster service is now running correctly:
-```
-systemctl status pve-cluster
-```
-Step 3: Change local IP address to the Public IP Address of your Server in the 
-
-Example: 
-127.0.1.1 vmi123456.contaboserver.net vmi123456
-127.0.0.1 localhost
-
-Should be changed to 
-Your-Ip-Address vmi123456.contaboserver.net vmi123456
-127.0.0.1 localhost
-
-Fix the hostname resolution:
-
-This step ensures that the hostname resolves correctly, which is critical for Proxmox services.
-```
-sudo bash -c 'echo "$(hostname -I | awk "{print \$1}") $(hostname)" >> /etc/hosts'
-```
-
-Step 4: Save and close the file:
-Save the changes and close the file. In nano, press Ctrl+X, then Y, and finally Enter.
-
-Restart the pve-cluster service:
-After updating the /etc/hosts file, try restarting the pve-cluster service:
-```
-systemctl restart pve-cluster
-```
-Check the status of the pve-cluster service:
-Verify if the pve-cluster service is now running correctly:
-```
-systemctl status pve-cluster
-```
-Verify the web interface:
-Once the pve-cluster service is running, try accessing the Proxmox web interface again using the URL provided using
-the following command 
-
-```
-echo "Your Proxmox VE login URL is: https://$(hostname -f):8006/"
-```
-
-Special Note: Port 8006 could be different if you specified if the URL shown in above command does not work, you
-can also try the command below
-```
-PORT=$(grep -oP '(?<=:port\s)\d+' /etc/pve/corosync.conf); echo "Your Proxmox VE login URL is: https://$(hostname -f):$PORT/"
-```
 
 You May Want to Consider Using ProxMox Starter Scripts (use at your Own Risk) at https://tteck.github.io/Proxmox/
 
@@ -293,6 +238,96 @@ After running these commands:
 - Automatic start and restart of security services (in case they stop). 
 
 Remember, security is an ongoing process. Regularly update your system and review your security measures to keep your Proxmox installation protected.
+
+
+HOSTNAME FIX FROM UPGRADE
+
+When I upgraded the first time I ansered yes to web services and it automatically changed my hostname to vmi112345.contaboserver.net
+
+This caused some problems! Here is how I fixed it 
+
+Set the Correct Hostname
+Set the hostname to the desired value. For this example, let's use proxmox-node as the hostname.
+
+```
+sudo hostnamectl set-hostname proxmox-node
+```
+Update the /etc/hosts File
+Edit the /etc/hosts file to ensure it has the correct entries for hostname resolution.
+
+```
+sudo nano /etc/hosts
+```
+Ensure it has the following entries (where 123.456.789 is your IP address)
+
+-------------
+127.0.0.1 localhost
+123.456.789 proxmox-node
+
+# The following lines are desirable for IPv6 capable hosts
+::1 localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+--------------
+
+
+Update the Cloud-Init Templates (if necessary)
+If Cloud-Init is overwriting your /etc/hosts file, you might need to update the templates to reflect the correct hostname.
+
+Edit the Cloud-Init Templates
+Edit /etc/cloud/templates/hosts.debian.tmpl:
+
+```
+sudo nano /etc/cloud/templates/hosts.debian.tmpl
+```
+Make sure the part below lookos like this where 123.456.789 is your IP address (most likely you will only need to edit one line). After you are done editing save and exit. 
+
+----------------
+{# The value '{{hostname}}' will be replaced with the local-hostname -#}
+127.0.1.1 {{fqdn}} {{hostname}}
+127.0.0.1 localhost
+123.456.789 proxmox-node
+
+# The following lines are desirable for IPv6 capable hosts
+::1 localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+-----------------
+
+Now make sure you Edit the /etc/cloud/cloud.cfg file to manage the hostname properly:
+
+```
+sudo nano /etc/cloud/cloud.cfg
+```
+Ensure preserve_hostname is set to true:
+
+Example: preserve_hostname: true
+
+Restart Necessary Services
+Restart the necessary services to apply the changes:
+
+```
+sudo systemctl restart pve-cluster pvedaemon pveproxy
+```
+
+sudo systemctl status pve-cluster pvedaemon pveproxy
+
+Verify the web interface:
+Once the pve-cluster service is running, try accessing the Proxmox web interface again using the URL provided using
+the following command 
+
+```
+echo "Your Proxmox VE login URL is: https://$(hostname -f):8006/"
+```
+
+sudo reboot
+
+
+Special Note: Port 8006 could be different if you specified if the URL shown in above command does not work, you
+can also try the command below
+```
+PORT=$(grep -oP '(?<=:port\s)\d+' /etc/pve/corosync.conf); echo "Your Proxmox VE login URL is: https://$(hostname -f):$PORT/"
+```
 
 
 
