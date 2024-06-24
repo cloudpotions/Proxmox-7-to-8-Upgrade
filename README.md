@@ -1,5 +1,5 @@
 # Proxmox-7-to-8-Upgrade
- This guide provides a clear and concise upgrade path from Proxmox VE 7 to 8, ensuring it's easy to copy and follow the commands. This guide was inspired by the official instructions from the[Proxmox VE Wiki.](https://www.paypal.com/donate/?hosted_button_id=SCM4T6CSCP5JS)
+ This guide provides a clear and concise upgrade path from Proxmox VE 7 to 8, ensuring it's easy to copy and follow the commands. This guide was inspired by the official instructions from the  [Proxmox VE Wiki.](https://pve.proxmox.com/wiki/Upgrade_from_7_to_8)
 
  ![Cloud Potions Wizard Proxmox 7 to 8 Picture](https://github.com/cloudpotions/Proxmox-7-to-8-Upgrade/blob/main/CP%20Proxmox%207%20to%208.jpg?raw=true)
 
@@ -133,6 +133,225 @@ can also try the command below
 ```
 PORT=$(grep -oP '(?<=:port\s)\d+' /etc/pve/corosync.conf); echo "Your Proxmox VE login URL is: https://$(hostname -f):$PORT/"
 ```
+
+You May Want to Consider Using ProxMox Starter Scripts (use at your Own Risk) at https://tteck.github.io/Proxmox/
+
+I like to use Proxmox VE Post Install
+This script provides options for managing Proxmox VE repositories, including disabling the Enterprise Repo, adding or correcting PVE sources, enabling the No-Subscription Repo, adding the test Repo, disabling the subscription nag, updating Proxmox VE, and rebooting the system.
+
+```
+bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/post-pve-install.sh)"
+```
+
+# Basic Security
+# On any brand new Linux Install it is highly advised to create a non-root user with sudo privileges,
+# install AppArmor and Fail2ban, and then disable root user login over SSH. Furthermore, you should
+# change your SSH Port. This script also ensures that security services start on bootup and automatically restart if shut off.
+
+# Proxmox Security Setup Guide
+
+This guide provides step-by-step instructions for implementing basic security measures on a new Proxmox installation. These steps include:
+
+- Creating a non-root user with sudo privileges
+- Installing and configuring AppArmor and Fail2ban
+- Disabling root user login over SSH
+- Changing the SSH port
+- Ensuring security services start on bootup and automatically restart if shut off
+
+## Prerequisites
+
+- A fresh Proxmox installation
+- Root access to the system
+
+## Step-by-Step Guide
+
+### 1. Update and Upgrade the System
+
+```bash
+apt update && apt upgrade -y
+```
+
+### 2. Install Necessary Packages
+
+```bash
+apt install -y sudo apparmor apparmor-utils fail2ban ufw
+```
+
+### 3. Create a New Non-Root User with Sudo Privileges
+
+```bash
+read -p "Enter the new username: " NEW_USER
+adduser $NEW_USER
+usermod -aG sudo $NEW_USER
+```
+
+### 4. Configure Fail2Ban for SSH
+
+```bash
+cat <<EOF > /etc/fail2ban/jail.local
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 3600
+EOF
+```
+
+### 5. Enable and Configure Fail2Ban Service
+
+```bash
+systemctl enable fail2ban
+systemctl start fail2ban
+systemctl mask fail2ban.service
+cat <<EOF > /etc/systemd/system/fail2ban.service
+[Unit]
+Description=Fail2Ban Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/fail2ban-server -f -s /var/run/fail2ban/fail2ban.sock
+ExecStop=/usr/bin/fail2ban-client stop
+ExecReload=/usr/bin/fail2ban-client reload
+PIDFile=/var/run/fail2ban/fail2ban.pid
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable fail2ban.service
+systemctl start fail2ban.service
+```
+
+### 6. Configure UFW (Uncomplicated Firewall)
+
+```bash
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow ssh
+ufw allow 8006/tcp  # Proxmox web interface
+ufw enable
+```
+
+### 7. Configure UFW Service
+
+```bash
+systemctl enable ufw
+systemctl start ufw
+cat <<EOF > /etc/systemd/system/ufw.service
+[Unit]
+Description=Uncomplicated Firewall
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ufw enable
+ExecStop=/usr/sbin/ufw disable
+RemainAfterExit=yes
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable ufw.service
+systemctl start ufw.service
+```
+
+### 8. Change SSH Port
+
+```bash
+read -p "Enter new SSH port number: " NEW_SSH_PORT
+sed -i "s/^#*Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
+ufw allow $NEW_SSH_PORT/tcp
+ufw delete allow ssh
+```
+
+### 9. Disable Root Login over SSH
+
+```bash
+sed -i 's/^PermitRootLogin .*/PermitRootLogin no/' /etc/ssh/sshd_config
+```
+
+### 10. Restart SSH Service
+
+```bash
+systemctl restart sshd
+```
+
+### 11. Enable and Configure AppArmor
+
+```bash
+aa-enforce /etc/apparmor.d/*
+systemctl enable apparmor
+systemctl start apparmor
+cat <<EOF > /etc/systemd/system/apparmor.service
+[Unit]
+Description=AppArmor initialization
+DefaultDependencies=no
+After=local-fs.target
+Before=sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/apparmor_parser -R /etc/apparmor.d/
+ExecStart=/usr/sbin/apparmor_parser -r /etc/apparmor.d/
+ExecStop=/usr/sbin/apparmor_parser -R /etc/apparmor.d/
+RemainAfterExit=yes
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable apparmor.service
+systemctl start apparmor.service
+```
+
+### 12. Verify Service Statuses
+
+```bash
+systemctl status fail2ban
+systemctl status ufw
+systemctl status apparmor
+```
+### 12. Enable Automatic Security Upgrades
+
+To enable automatic security upgrades, run the following command:
+```
+apt install -y unattended-upgrades && dpkg-reconfigure -plow unattended-upgrades
+```
+This command will install unattended-upgrades and launch an interactive prompt to configure it. Choose 'Yes' when asked if you want to automatically download and install stable updates.
+
+## Post-Installation Steps
+
+After running these commands:
+
+⚠️ ⚠️ 1. Review the changes and ensure you can still access your system before you closer your terminal ⚠️ ⚠️ 
+2. Update your SSH client settings to use the new port you specified.
+3. Once again make sure you can login with the new user you created before closing terminal!
+
+## Important Notes 
+
+- These commands should be run as root or with sudo privileges.
+- Make sure to remember the new username and SSH port you set.
+
+
+## Security Features Implemented
+
+- System updates and upgrades
+- New non-root user with sudo privileges
+- Fail2Ban for protection against brute-force attacks
+- UFW (Uncomplicated Firewall) configured for basic protection
+- Changed SSH port (helps avoid automated attacks)
+- Disabled root login over SSH
+- AppArmor for application security
+- Automatic start and restart of security services (in case they stop). 
+
+Remember, security is an ongoing process. Regularly update your system and review your security measures to keep your Proxmox installation protected.
 
 
 
