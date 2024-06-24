@@ -278,7 +278,6 @@ sudo nano /etc/cloud/templates/hosts.debian.tmpl
 Make sure the part below lookos like this where 123.456.789 is your IP address (most likely you will only need to edit one line). After you are done editing save and exit. 
 
 ----------------
-{# The value '{{hostname}}' will be replaced with the local-hostname -#}
 127.0.1.1 {{fqdn}} {{hostname}}
 127.0.0.1 localhost
 123.456.789 proxmox-node
