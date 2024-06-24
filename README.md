@@ -186,42 +186,14 @@ sudo bash-c 'read -p "Enter new username: " u && adduser --gecos "" $u && usermo
 ### 4. Configure Fail2Ban for SSH
 
 ```
-cat <<EOF > /etc/fail2ban/jail.local
-[sshd]
-enabled = true
-port = ssh
-filter = sshd
-logpath = /var/log/auth.log
-maxretry = 3
-bantime = 3600
-EOF
+echo '[sshd]\nenabled = true\nport = ssh\nfilter = sshd\nlogpath = /var/log/auth.log\nmaxretry = 3\nbantime = 3600' | sudo tee /etc/fail2ban/jail.local > /dev/null
 ```
 
 ### 5. Enable and Configure Fail2Ban Service
 
 ```
-systemctl enable fail2ban
-systemctl start fail2ban
-systemctl mask fail2ban.service
-cat <<EOF > /etc/systemd/system/fail2ban.service
-[Unit]
-Description=Fail2Ban Service
-After=network.target
+sudo apt install -y fail2ban && echo '[sshd]\nenabled = true\nport = ssh\nfilter = sshd\nlogpath = /var/log/auth.log\nmaxretry = 3\nbantime = 3600' | sudo tee /etc/fail2ban/jail.local > /dev/null && sudo systemctl unmask fail2ban && sudo systemctl enable fail2ban && sudo systemctl start fail2ban
 
-[Service]
-Type=simple
-ExecStart=/usr/bin/fail2ban-server -f -s /var/run/fail2ban/fail2ban.sock
-ExecStop=/usr/bin/fail2ban-client stop
-ExecReload=/usr/bin/fail2ban-client reload
-PIDFile=/var/run/fail2ban/fail2ban.pid
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
-systemctl daemon-reload
-systemctl enable fail2ban.service
-systemctl start fail2ban.service
 ```
 
 ### 6. Configure UFW (Uncomplicated Firewall)
@@ -237,35 +209,13 @@ ufw enable
 ### 7. Configure UFW Service
 
 ```
-systemctl enable ufw
-systemctl start ufw
-cat <<EOF > /etc/systemd/system/ufw.service
-[Unit]
-Description=Uncomplicated Firewall
-After=network.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/sbin/ufw enable
-ExecStop=/usr/sbin/ufw disable
-RemainAfterExit=yes
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
-systemctl daemon-reload
-systemctl enable ufw.service
-systemctl start ufw.service
+sudo systemctl enable ufw && sudo systemctl start ufw && echo -e '[Unit]\nDescription=Uncomplicated Firewall\nAfter=network.target\n[Service]\nType=oneshot\nExecStart=/usr/sbin/ufw enable\nExecStop=/usr/sbin/ufw disable\nRemainAfterExit=yes\nRestart=always\n[Install]\nWantedBy=multi-user.target' | sudo tee /etc/systemd/system/ufw.service > /dev/null && sudo systemctl daemon-reload && sudo systemctl enable ufw.service && sudo systemctl start ufw.service
 ```
 
 ### 8. Change SSH Port
 
 ```
-read -p "Enter new SSH port number: " NEW_SSH_PORT
-sed -i "s/^#*Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
-ufw allow $NEW_SSH_PORT/tcp
-ufw delete allow ssh
+read -p "Enter new SSH port number: " NEW_SSH_PORT && sudo sed -i "s/^#*Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config && sudo ufw allow $NEW_SSH_PORT/tcp && sudo ufw delete allow ssh
 ```
 
 ### 9. Disable Root Login over SSH
@@ -283,30 +233,7 @@ systemctl restart sshd
 ### 11. Enable and Configure AppArmor
 
 ```
-aa-enforce /etc/apparmor.d/*
-systemctl enable apparmor
-systemctl start apparmor
-cat <<EOF > /etc/systemd/system/apparmor.service
-[Unit]
-Description=AppArmor initialization
-DefaultDependencies=no
-After=local-fs.target
-Before=sysinit.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/sbin/apparmor_parser -R /etc/apparmor.d/
-ExecStart=/usr/sbin/apparmor_parser -r /etc/apparmor.d/
-ExecStop=/usr/sbin/apparmor_parser -R /etc/apparmor.d/
-RemainAfterExit=yes
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
-systemctl daemon-reload
-systemctl enable apparmor.service
-systemctl start apparmor.service
+sudo aa-enforce /etc/apparmor.d/* && sudo systemctl enable apparmor && sudo systemctl start apparmor && echo -e '[Unit]\nDescription=AppArmor initialization\nDefaultDependencies=no\nAfter=local-fs.target\nBefore=sysinit.target\n[Service]\nType=oneshot\nExecStart=/usr/sbin/apparmor_parser -R /etc/apparmor.d/\nExecStart=/usr/sbin/apparmor_parser -r /etc/apparmor.d/\nExecStop=/usr/sbin/apparmor_parser -R /etc/apparmor.d/\nRemainAfterExit=yes\nRestart=always\n[Install]\nWantedBy=multi-user.target' | sudo tee /etc/systemd/system/apparmor.service > /dev/null && sudo systemctl daemon-reloa
 ```
 
 ### 12. Verify Service Statuses
