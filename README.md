@@ -260,8 +260,8 @@ sudo nano /etc/hosts
 ```
 Ensure it has the following entries (where 123.456.789 is your IP address)
 
-127.0.0.1 localhost
-#123.456.789 proxmox-node
+127.0.0.1 localhost <br />
+123.456.789 proxmox-node
 
 Update the Cloud-Init Templates (if necessary)
 If Cloud-Init is overwriting your /etc/hosts file, you might need to update the templates to reflect the correct hostname.
@@ -274,9 +274,9 @@ sudo nano /etc/cloud/templates/hosts.debian.tmpl
 ```
 Make sure the part below lookos like this where 123.456.789 is your IP address (most likely you will only need to edit one line). After you are done editing save and exit. 
 
-127.0.1.1 {{fqdn}} {{hostname}}
-127.0.0.1 localhost
-#123.456.789 proxmox-node
+127.0.1.1 {{fqdn}} {{hostname}} <br />
+127.0.0.1 localhost <br />
+#123.456.789 proxmox-node <br />
 
 Now make sure you Edit the /etc/cloud/cloud.cfg file to manage the hostname properly:
 
@@ -287,7 +287,7 @@ Ensure preserve_hostname is set to true:
 
 Example: preserve_hostname: true
 
-Restart Necessary Services
+Restart Necessary Services <br />
 Restart the necessary services to apply the changes:
 
 ```
@@ -296,8 +296,8 @@ sudo systemctl restart pve-cluster pvedaemon pveproxy
 
 sudo systemctl status pve-cluster pvedaemon pveproxy
 
-Verify the web interface:
-Once the pve-cluster service is running, try accessing the Proxmox web interface again using the URL provided using
+Verify the web interface: <br />
+Once the pve-cluster service is running, try accessing the Proxmox web interface again using the URL provided using <br />
 the following command 
 
 ```
