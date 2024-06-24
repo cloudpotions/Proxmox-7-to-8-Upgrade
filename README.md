@@ -260,11 +260,8 @@ sudo nano /etc/hosts
 ```
 Ensure it has the following entries (where 123.456.789 is your IP address)
 
--------------
 127.0.0.1 localhost
-123.456.789 proxmox-node
---------------
-
+#123.456.789 proxmox-node
 
 Update the Cloud-Init Templates (if necessary)
 If Cloud-Init is overwriting your /etc/hosts file, you might need to update the templates to reflect the correct hostname.
@@ -277,11 +274,9 @@ sudo nano /etc/cloud/templates/hosts.debian.tmpl
 ```
 Make sure the part below lookos like this where 123.456.789 is your IP address (most likely you will only need to edit one line). After you are done editing save and exit. 
 
-----------------
 127.0.1.1 {{fqdn}} {{hostname}}
 127.0.0.1 localhost
-123.456.789 proxmox-node
------------------
+#123.456.789 proxmox-node
 
 Now make sure you Edit the /etc/cloud/cloud.cfg file to manage the hostname properly:
 
