@@ -109,6 +109,13 @@ Should be changed to
 Your-Ip-Address vmi123456.contaboserver.net vmi123456
 127.0.0.1 localhost
 
+Fix the hostname resolution:
+
+This step ensures that the hostname resolves correctly, which is critical for Proxmox services.
+```
+sudo bash -c 'echo "$(hostname -I | awk "{print \$1}") $(hostname)" >> /etc/hosts'
+```
+
 Step 4: Save and close the file:
 Save the changes and close the file. In nano, press Ctrl+X, then Y, and finally Enter.
 
@@ -183,6 +190,17 @@ apt install -y sudo apparmor apparmor-utils fail2ban ufw
 ```
 sudo bash-c 'read -p "Enter new username: " u && adduser --gecos "" $u && usermod -aG sudo $u && echo "User $u created and added to sudo group."'
 ```
+Also Make Sure you add this Non-Root User to ProxMox
+Add the non-root user to necessary groups and configure as a Proxmox admin:
+```
+sudo usermod -aG sudo,adm NonRootAdminUsername && sudo pveum user add NonRootAdminUsername@pam -groups admin && (echo -e "user:NonRootAdminUsername@pam:1:0:::NonRootAdminUsername@pam:" | sudo tee -a /etc/pve/user.cfg > /dev/null) && sudo systemctl restart pvedaemon pveproxy
+```
+PS - Make sure you also add your non root user on the ProxMox Users and it will be in the Linux Pam Standar Authentication. 
+Click on Data Center --> Users --> Add User
+Also just to be safe click on Permissions --> Select path as "/" then select User then Select Administrator as the Role
+
+
+
 ### 4. Configure Fail2Ban for SSH
 
 ```
