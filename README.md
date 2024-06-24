@@ -181,12 +181,8 @@ apt install -y sudo apparmor apparmor-utils fail2ban ufw
 ### 3. Create a New Non-Root User with Sudo Privileges
 
 ```
-read -p "Enter the new username: " NEW_USER
-adduser $NEW_USER
-usermod -aG sudo $NEW_USER
-echo "User $NEW_USER created and added to sudo group. Please set a strong password minimum 16 characters suggested."
-passwd $NEW_USER
-
+sudo bash -c 'read -p "Enter new username: " u && adduser --gecos "" $u && usermod -aG sudo $u && echo "User $u created and added to sudo group."'
+```
 ### 4. Configure Fail2Ban for SSH
 
 ```bash
