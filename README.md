@@ -142,7 +142,7 @@ I like to use Proxmox VE Post Install
 This script provides options for managing Proxmox VE repositories, including disabling the Enterprise Repo, adding or correcting PVE sources, enabling the No-Subscription Repo, adding the test Repo, disabling the subscription nag, updating Proxmox VE, and rebooting the system.
 
 ```
-bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/post-pve-install.sh)"
+-c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/post-pve-install.sh)"
 ```
 
 Proxmox Security Setup Guide
@@ -168,24 +168,24 @@ Follow the steps below to secure your Proxmox installation:
 
 ### 1. Update and Upgrade the System
 
-```bash
+```
 apt update && apt upgrade -y
 ```
 
 ### 2. Install Necessary Packages
 
-```bash
+```
 apt install -y sudo apparmor apparmor-utils fail2ban ufw
 ```
 
 ### 3. Create a New Non-Root User with Sudo Privileges
 
 ```
-sudo bash -c 'read -p "Enter new username: " u && adduser --gecos "" $u && usermod -aG sudo $u && echo "User $u created and added to sudo group."'
+sudo bash-c 'read -p "Enter new username: " u && adduser --gecos "" $u && usermod -aG sudo $u && echo "User $u created and added to sudo group."'
 ```
 ### 4. Configure Fail2Ban for SSH
 
-```bash
+```
 cat <<EOF > /etc/fail2ban/jail.local
 [sshd]
 enabled = true
@@ -199,7 +199,7 @@ EOF
 
 ### 5. Enable and Configure Fail2Ban Service
 
-```bash
+```
 systemctl enable fail2ban
 systemctl start fail2ban
 systemctl mask fail2ban.service
@@ -226,7 +226,7 @@ systemctl start fail2ban.service
 
 ### 6. Configure UFW (Uncomplicated Firewall)
 
-```bash
+```
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow ssh
@@ -236,7 +236,7 @@ ufw enable
 
 ### 7. Configure UFW Service
 
-```bash
+```
 systemctl enable ufw
 systemctl start ufw
 cat <<EOF > /etc/systemd/system/ufw.service
@@ -261,7 +261,7 @@ systemctl start ufw.service
 
 ### 8. Change SSH Port
 
-```bash
+```
 read -p "Enter new SSH port number: " NEW_SSH_PORT
 sed -i "s/^#*Port .*/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
 ufw allow $NEW_SSH_PORT/tcp
@@ -270,19 +270,19 @@ ufw delete allow ssh
 
 ### 9. Disable Root Login over SSH
 
-```bash
+```
 sed -i 's/^PermitRootLogin .*/PermitRootLogin no/' /etc/ssh/sshd_config
 ```
 
 ### 10. Restart SSH Service
 
-```bash
+```
 systemctl restart sshd
 ```
 
 ### 11. Enable and Configure AppArmor
 
-```bash
+```
 aa-enforce /etc/apparmor.d/*
 systemctl enable apparmor
 systemctl start apparmor
@@ -311,7 +311,7 @@ systemctl start apparmor.service
 
 ### 12. Verify Service Statuses
 
-```bash
+```
 systemctl status fail2ban
 systemctl status ufw
 systemctl status apparmor
