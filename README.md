@@ -263,11 +263,6 @@ Ensure it has the following entries (where 123.456.789 is your IP address)
 -------------
 127.0.0.1 localhost
 123.456.789 proxmox-node
-
-# The following lines are desirable for IPv6 capable hosts
-::1 localhost ip6-localhost ip6-loopback
-ff02::1 ip6-allnodes
-ff02::2 ip6-allrouters
 --------------
 
 
@@ -287,11 +282,6 @@ Make sure the part below lookos like this where 123.456.789 is your IP address (
 127.0.1.1 {{fqdn}} {{hostname}}
 127.0.0.1 localhost
 123.456.789 proxmox-node
-
-# The following lines are desirable for IPv6 capable hosts
-::1 localhost ip6-localhost ip6-loopback
-ff02::1 ip6-allnodes
-ff02::2 ip6-allrouters
 -----------------
 
 Now make sure you Edit the /etc/cloud/cloud.cfg file to manage the hostname properly:
@@ -319,10 +309,10 @@ the following command
 ```
 echo "Your Proxmox VE login URL is: https://$(hostname -f):8006/"
 ```
-
+Reboot Your System
+```
 sudo reboot
-
-
+```
 Special Note: Port 8006 could be different if you specified if the URL shown in above command does not work, you
 can also try the command below
 ```
