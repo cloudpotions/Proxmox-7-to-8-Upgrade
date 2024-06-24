@@ -209,7 +209,7 @@ ufw enable
 ### 7. Configure UFW Service
 
 ```
-sudo systemctl enable ufw && sudo systemctl start ufw && echo -e '[Unit]\nDescription=Uncomplicated Firewall\nAfter=network.target\n[Service]\nType=oneshot\nExecStart=/usr/sbin/ufw enable\nExecStop=/usr/sbin/ufw disable\nRemainAfterExit=yes\nRestart=always\n[Install]\nWantedBy=multi-user.target' | sudo tee /etc/systemd/system/ufw.service > /dev/null && sudo systemctl daemon-reload && sudo systemctl enable ufw.service && sudo systemctl start ufw.service
+sudo ufw enable && sudo ufw default deny incoming && sudo ufw default allow outgoing && sudo ufw allow ssh && sudo ufw allow 8006/tcp && sudo ufw status verbose
 ```
 
 ### 8. Change SSH Port
@@ -233,15 +233,13 @@ systemctl restart sshd
 ### 11. Enable and Configure AppArmor
 
 ```
-sudo aa-enforce /etc/apparmor.d/* && sudo systemctl enable apparmor && sudo systemctl start apparmor && echo -e '[Unit]\nDescription=AppArmor initialization\nDefaultDependencies=no\nAfter=local-fs.target\nBefore=sysinit.target\n[Service]\nType=oneshot\nExecStart=/usr/sbin/apparmor_parser -R /etc/apparmor.d/\nExecStart=/usr/sbin/apparmor_parser -r /etc/apparmor.d/\nExecStop=/usr/sbin/apparmor_parser -R /etc/apparmor.d/\nRemainAfterExit=yes\nRestart=always\n[Install]\nWantedBy=multi-user.target' | sudo tee /etc/systemd/system/apparmor.service > /dev/null && sudo systemctl daemon-reloa
+sudo systemctl enable apparmor && sudo systemctl start apparmor && sudo aa-status
 ```
 
 ### 12. Verify Service Statuses
 
 ```
-systemctl status fail2ban
-systemctl status ufw
-systemctl status apparmor
+systemctl is-active fail2ban && systemctl is-active ufw && systemctl is-active apparmor
 ```
 ### 12. Enable Automatic Security Upgrades
 
